@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ApuGPT</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#0b1020;
+  color:#f5f5f5;
+}
+header{
+  padding:22px 18px;
+  border-bottom:1px solid #293047;
+  color:#e7bd67;
+  font-size:25px;
+  font-weight:bold;
+}
+header small{
+  display:block;
+  color:#aab1c5;
+  font-size:12px;
+  margin-top:5px;
+  font-weight:normal;
+}
+main{
+  max-width:650px;
+  margin:auto;
+  padding:24px 16px 110px;
+}
+h1{font-size:28px;margin-top:20px}
+.gold{color:#e7bd67}
+.subtitle{color:#aab1c5;line-height:1.6}
+.card{
+  background:#151c30;
+  border:1px solid #293047;
+  border-radius:16px;
+  padding:18px;
+  margin-top:18px;
+}
+button{
+  background:#e7bd67;
+  color:#111827;
+  border:0;
+  padding:12px 16px;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+#chat{
+  white-space:pre-wrap;
+  line-height:1.6;
+  margin-top:20px;
+}
+form{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  display:flex;
+  gap:8px;
+  padding:12px;
+  background:#0b1020;
+  border-top:1px solid #293047;
+}
+input{
+  flex:1;
+  min-width:0;
+  background:#151c30;
+  color:white;
+  border:1px solid #39435d;
+  border-radius:10px;
+  padding:13px;
+  font-size:15px;
+}
+.note{font-size:12px;color:#9da6bb}
+</style>
+</head>
+<body>
+<header>
+  ApuGPT
+  <small>Your AI assistant</small>
+</header><main>
+  <h1>Hello! Welcome to <span class="gold">ApuGPT</span></h1>
+  <p class="subtitle">Your personal assistant for learning, ideas and everyday questions.</p>  <div class="card">
+    <h3 class="gold">What can I help you with?</h3>
+    <p>Ask a question or type a message below to get started.</p>
+    <button onclick="document.getElementById('message').focus()">Start Chatting</button>
+  </div>  <div id="chat"></div>
+  <p class="note">ApuGPT Starter • AI responses require an AI service connection.</p>
+</main><form id="form">
+  <input id="message" placeholder="Type your message..." autocomplete="off">
+  <button type="submit">Send</button>
+</form><script>
+const form=document.getElementById('form');
+const input=document.getElementById('message');
+const chat=document.getElementById('chat');
+
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  const message=input.value.trim();
+  if(!message)return;
+  chat.textContent+='You: '+message+'\n\nApuGPT: Your message has been received. Connect an AI service to enable intelligent responses.\n\n';
+  input.value='';
+  window.scrollTo(0,document.body.scrollHeight);
+});
+</script></body>
+  </html>
