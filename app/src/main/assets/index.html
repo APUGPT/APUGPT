@@ -2,8 +2,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ApuGPT</title>
-<style>
+<title>ApuGPT</title><style>
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -49,8 +48,13 @@ button{
   font-weight:bold;
   cursor:pointer;
 }
+button:disabled{
+  opacity:.6;
+  cursor:wait;
+}
 #chat{
   white-space:pre-wrap;
+  overflow-wrap:anywhere;
   line-height:1.6;
   margin-top:20px;
 }
@@ -75,7 +79,9 @@ input{
   padding:13px;
   font-size:15px;
 }
-.note{font-size:12px;color:#9da6bb}/* Admin Instagram Watermark */
+.note{font-size:12px;color:#9da6bb}
+
+/* Admin Instagram Watermark */
 .admin-watermark{
 position:fixed;
 bottom:76px;
@@ -108,20 +114,21 @@ font-weight:bold;
 .admin-watermark strong{display:block;font-size:13px}
 .admin-watermark span{color:#aab1c5}
 .admin-watermark:active{transform:scale(.97)}
-</style>
-
-</head>
-<body><header>
+</style></head><body>
+<header>
   ApuGPT
   <small>Your AI assistant</small>
 </header><main>
   <h1>Hello! Welcome to <span class="gold">ApuGPT</span></h1>
-  <p class="subtitle">Your personal assistant for learning, ideas and everyday questions.</p>  <div class="card">
+  <p class="subtitle">
+    Your personal assistant for learning, ideas and everyday questions.
+  </p>  <div class="card">
     <h3 class="gold">What can I help you with?</h3>
     <p>Ask a question or type a message below to get started.</p>
-    <button onclick="document.getElementById('message').focus()">Start Chatting</button>
-  </div>  <div id="chat"></div>
-  <p class="note">ApuGPT Starter • AI responses require an AI service connection.</p>
+    <button type="button" onclick="document.getElementById('message').focus()">
+      Start Chatting
+    </button>
+  </div>  <div id="chat" aria-live="polite"></div>  <p class="note">ApuGPT • AI assistant</p>
 </main><a class="admin-watermark"
 href="https://www.instagram.com/imnot.apurba/"
 target="_blank"
@@ -131,26 +138,69 @@ aria-label="Visit Admin Instagram profile">
   <div class="insta-icon">◎</div>
   <div>
     <span>ADMIN WATERMARK</span>
-    <strong>@imnot.apurba ↗</strong>
+    <strong>@imnot.apuraba ↗</strong>
   </div>
 </a><form id="form">
-  <input id="message" placeholder="Type your message..." autocomplete="off">
-  <button type="submit">Send</button>
+  <input
+    id="message"
+    placeholder="Type your message..."
+    autocomplete="off"
+    aria-label="Your message"
+  >
+  <button id="send" type="submit">Send</button>
 </form><script>
-const form=document.getElementById('form');
-const input=document.getElementById('message');
-const chat=document.getElementById('chat');
+const form = document.getElementById('form');
+const input = document.getElementById('message');
+const chat = document.getElementById('chat');
+const sendButton = document.getElementById('send');
 
-form.addEventListener('submit',function(e){
+// ApuGPT Render backend
+const API_URL = 'https://apugpt.onrender.com/chat';
+
+form.addEventListener('submit', async function(e) {
   e.preventDefault();
-  const message=input.value.trim();
-  if(!message)return;
 
-  chat.textContent+='You: '+message+
-  '\n\nApuGPT: Your message has been received. Connect an AI service to enable intelligent responses.\n\n';
+  const message = input.value.trim();
+  if (!message) return;
 
-  input.value='';
-  window.scrollTo(0,document.body.scrollHeight);
+  chat.textContent += 'You: ' + message + '\n\n';
+  input.value = '';
+  input.disabled = true;
+  sendButton.disabled = true;
+  sendButton.textContent = 'Wait...';
+
+  const loading = document.createElement('div');
+  loading.textContent = 'ApuGPT: Thinking...';
+  chat.appendChild(loading);
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: message })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'AI request failed.');
+    }
+
+    loading.textContent = 'ApuGPT: ' + (data.reply || 'No response received.');
+
+  } catch (error) {
+    loading.textContent =
+      'ApuGPT: Could not connect to AI. Please try again.\n' +
+      'Details: ' + error.message;
+  } finally {
+    input.disabled = false;
+    sendButton.disabled = false;
+    sendButton.textContent = 'Send';
+    input.focus();
+    window.scrollTo(0, document.body.scrollHeight);
+  }
 });
 </script></body>
 </html>
