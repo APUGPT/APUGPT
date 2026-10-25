@@ -43,7 +43,33 @@ const model = genAI.getGenerativeModel({
   model: "gemini-3.8-flash"
 });
 
-const result = await model.generateContent(message);
+let result;
+let lastError;
+
+for (let attempt = 1; attempt <= 3; attempt++) {
+  try {
+    result = await model.generateContent(message);
+    break;
+  } catch (error) {
+    lastError = error;
+
+    console.error(
+      `Gemini attempt ${attempt} failed:`,
+      error.message
+    );
+
+    if (attempt < 3) {
+      await new Promise(resolve =>
+        setTimeout(resolve, attempt * 2000)
+      );
+    }
+  }
+}
+
+if (!result) {
+  throw lastError;
+}
+
 const response = await result.response;
 
 return res.json({
@@ -53,8 +79,8 @@ return res.json({
 } catch (error) {
 console.error("Gemini request failed:", error.message);
 
-return res.status(500).json({
-  error: "AI could not respond. Please try again."
+return res.status(502).json({
+  error: error.message || "AI request failed."
 });
 
 }
