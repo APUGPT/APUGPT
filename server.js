@@ -11,81 +11,97 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.GEMINI_API_KEY;
 
 app.get("/", (req, res) => {
-res.send("ApuGPT AI Backend is running!");
+  res.send("ApuGPT AI Backend is running!");
 });
 
 app.get("/health", (req, res) => {
-res.json({
-status: "ok",
-service: "ApuGPT Backend"
-});
+  res.json({
+    status: "ok",
+    service: "ApuGPT Backend"
+  });
 });
 
 app.post("/chat", async (req, res) => {
-try {
-if (!API_KEY) {
-return res.status(500).json({
-error: "Gemini API key is not configured."
-});
-}
+  const message = req.body?.message;
 
-const message = req.body?.message;
-
-if (typeof message !== "string" || !message.trim()) {
-  return res.status(400).json({
-    error: "Please provide a message."
-  });
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
-
-const model = genAI.getGenerativeModel({
-  model: "gemini-3.8-flash"
-});
-
-let result;
-let lastError;
-
-for (let attempt = 1; attempt <= 3; attempt++) {
-  try {
-    result = await model.generateContent(message);
-    break;
-  } catch (error) {
-    lastError = error;
-
-    console.error(
-      `Gemini attempt ${attempt} failed:`,
-      error.message
-    );
-
-    if (attempt < 3) {
-      await new Promise(resolve =>
-        setTimeout(resolve, attempt * 2000)
-      );
-    }
+  if (!API_KEY) {
+    return res.status(500).json({
+      error: "Gemini API key is not configured."
+    });
   }
-}
 
-if (!result) {
-  throw lastError;
-}
+  if (typeof message !== "string" || !message.trim()) {
+    return res.status(400).json({
+      error: "Please provide a message."
+    });
+  }
 
-const response = await result.response;
+  try {
+    const genAI = new GoogleGenerativeAI(API_KEY);
 
-return res.json({
-  reply: response.text()
-});
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3.8-flash"
+    });
 
-} catch (error) {
-console.error("Gemini request failed:", error.message);
+    let result;
 
-return res.status(502).json({
-  error: error.message || "AI request failed."
-});
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        result = await model.generateContent(message);
+        break;
+      } catch (error) {
+        const errorMessage = error.message || "";
 
-}
+        console.error(
+          `Gemini attempt ${attempt} failed:`,
+          errorMessage
+        );
+
+        const temporaryError =
+          /503|429|500|502|504|overloaded|high demand|temporarily unavailable/i
+            .test(errorMessage);
+
+        if (attempt === 1 && temporaryError) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    if (!result) {
+      throw new Error("Gemini did not return a response.");
+    }
+
+    const response = await result.response;
+    const reply = response.text();
+
+    return res.json({ reply });
+
+  } catch (error) {
+    console.error("Gemini request failed:", error.message);
+
+    const message = error.message || "";
+
+    if (/429|quota|rate.?limit/i.test(message)) {
+      return res.status(429).json({
+        error: "AI request limit reached. Please try again later."
+      });
+    }
+
+    if (/503|overloaded|high demand|temporarily unavailable/i.test(message)) {
+      return res.status(503).json({
+        error: "AI server is busy. Please try again shortly."
+      });
+    }
+
+    return res.status(502).json({
+      error: "AI could not respond. Please try again."
+    });
+  }
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-console.log("ApuGPT backend running on port ${PORT}");
+  console.log(`ApuGPT backend running on port ${PORT}`);
 });
