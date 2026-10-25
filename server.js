@@ -14,6 +14,13 @@ app.get("/", (req, res) => {
 res.send("ApuGPT AI Backend is running!");
 });
 
+app.get("/health", (req, res) => {
+res.json({
+status: "ok",
+service: "ApuGPT Backend"
+});
+});
+
 app.post("/chat", async (req, res) => {
 try {
 if (!API_KEY) {
@@ -22,30 +29,31 @@ error: "Gemini API key is not configured."
 });
 }
 
-const message = req.body.message;
+const message = req.body?.message;
 
-if (!message || typeof message !== "string") {
+if (typeof message !== "string" || !message.trim()) {
   return res.status(400).json({
     error: "Please provide a message."
   });
 }
 
 const genAI = new GoogleGenerativeAI(API_KEY);
+
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash"
+  model: "gemini-3.8-flash"
 });
 
 const result = await model.generateContent(message);
 const response = await result.response;
 
-res.json({
+return res.json({
   reply: response.text()
 });
 
 } catch (error) {
 console.error("Gemini request failed:", error.message);
 
-res.status(500).json({
+return res.status(500).json({
   error: "AI could not respond. Please try again."
 });
 
