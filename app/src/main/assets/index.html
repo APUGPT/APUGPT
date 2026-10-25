@@ -28,7 +28,7 @@ header small{
 main{
   max-width:650px;
   margin:auto;
-  padding:24px 16px 110px;
+  padding:24px 16px 125px;
 }
 h1{font-size:28px;margin-top:20px}
 .gold{color:#e7bd67}
@@ -75,11 +75,43 @@ input{
   padding:13px;
   font-size:15px;
 }
-.note{font-size:12px;color:#9da6bb}
+.note{font-size:12px;color:#9da6bb}/* Admin Instagram Watermark */
+.admin-watermark{
+position:fixed;
+bottom:76px;
+right:14px;
+z-index:10;
+display:flex;
+align-items:center;
+gap:8px;
+padding:10px 13px;
+border:1px solid #806a3c;
+border-radius:30px;
+background:#151c30;
+color:#e7bd67;
+text-decoration:none;
+font-size:12px;
+box-shadow:0 4px 18px rgba(0,0,0,.35);
+}
+.admin-watermark .insta-icon{
+width:25px;
+height:25px;
+border-radius:8px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#e7bd67;
+color:#0b1020;
+font-size:17px;
+font-weight:bold;
+}
+.admin-watermark strong{display:block;font-size:13px}
+.admin-watermark span{color:#aab1c5}
+.admin-watermark:active{transform:scale(.97)}
 </style>
+
 </head>
-<body>
-<header>
+<body><header>
   ApuGPT
   <small>Your AI assistant</small>
 </header><main>
@@ -90,7 +122,18 @@ input{
     <button onclick="document.getElementById('message').focus()">Start Chatting</button>
   </div>  <div id="chat"></div>
   <p class="note">ApuGPT Starter • AI responses require an AI service connection.</p>
-</main><form id="form">
+</main><a class="admin-watermark"
+href="https://www.instagram.com/imnot.apurba/"
+target="_blank"
+rel="noopener noreferrer"
+aria-label="Visit Admin Instagram profile">
+
+  <div class="insta-icon">◎</div>
+  <div>
+    <span>ADMIN WATERMARK</span>
+    <strong>@imnot.apurba ↗</strong>
+  </div>
+</a><form id="form">
   <input id="message" placeholder="Type your message..." autocomplete="off">
   <button type="submit">Send</button>
 </form><script>
@@ -102,9 +145,12 @@ form.addEventListener('submit',function(e){
   e.preventDefault();
   const message=input.value.trim();
   if(!message)return;
-  chat.textContent+='You: '+message+'\n\nApuGPT: Your message has been received. Connect an AI service to enable intelligent responses.\n\n';
+
+  chat.textContent+='You: '+message+
+  '\n\nApuGPT: Your message has been received. Connect an AI service to enable intelligent responses.\n\n';
+
   input.value='';
   window.scrollTo(0,document.body.scrollHeight);
 });
 </script></body>
-  </html>
+</html>
