@@ -1,6 +1,6 @@
 name: Build ApuGPT APK
 
-on:
+'on':
 workflow_dispatch:
 push:
 branches:
@@ -9,10 +9,9 @@ branches:
 jobs:
 build:
 runs-on: ubuntu-latest
-
 steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
+- name: Checkout code
+uses: actions/checkout@v4
 
   - name: Set up JDK
     uses: actions/setup-java@v5
