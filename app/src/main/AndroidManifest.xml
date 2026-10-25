@@ -1,24 +1,112 @@
-<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET" />
+package com.apugpt.app;
 
-<application
-    android:icon="@drawable/apugpt_icon"
-    android:roundIcon="@drawable/apugpt_icon"
-    android:theme="@android:style/Theme.Material.Light.NoActionBar"
-    android:label="ApuGPT"
-    android:allowBackup="false"
-    android:supportsRtl="true">
+import android.app.Activity;
+import android.os.Bundle;
+import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceError;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
 
-    <activity
-        android:name=".MainActivity"
-        android:exported="true">
+public class MainActivity extends Activity {
 
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+private WebView webView;
+private static final String TAG = "ApuGPTWebView";
 
-    </activity>
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
 
-</application>
+    webView = new WebView(this);
 
-</manifest>
+    webView.getSettings().setJavaScriptEnabled(true);
+    webView.getSettings().setDomStorageEnabled(true);
+
+    webView.setWebChromeClient(new WebChromeClient() {
+        @Override
+        public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+            Log.d(TAG,
+                consoleMessage.message()
+                + " -- Line "
+                + consoleMessage.lineNumber());
+
+            return true;
+        }
+    });
+
+    webView.setWebViewClient(new WebViewClient() {
+
+        @Override
+        public boolean shouldOverrideUrlLoading(
+                WebView view, WebResourceRequest request) {
+
+            Uri uri = request.getUrl();
+            String url = uri.toString();
+
+            if (url.startsWith("https://www.instagram.com/") ||
+                url.startsWith("https://instagram.com/")) {
+
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(
+                WebView view, String url) {
+
+            if (url.startsWith("https://www.instagram.com/") ||
+                url.startsWith("https://instagram.com/")) {
+
+                Intent intent = new Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(url)
+                );
+
+                startActivity(intent);
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onReceivedError(
+                WebView view,
+                WebResourceRequest request,
+                WebResourceError error) {
+
+            super.onReceivedError(view, request, error);
+
+            if (request.isForMainFrame()) {
+                Log.e(TAG,
+                    "WebView error: "
+                    + error.getDescription()
+                    + " | Code: "
+                    + error.getErrorCode());
+            }
+        }
+    });
+
+    setContentView(webView);
+
+    webView.loadUrl("file:///android_asset/index.html");
+}
+
+@Override
+public void onBackPressed() {
+    if (webView != null && webView.canGoBack()) {
+        webView.goBack();
+    } else {
+        super.onBackPressed();
+    }
+}
+
+}
